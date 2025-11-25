@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your saved jobs - JobFinder">
+  <title>Saved Jobs - JobFinder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💼</text></svg>">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="logo">
+        <span class="logo-icon">💼</span>
+        <span>JobFinder</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">Find Jobs</a>
+        <a href="/saved.html" class="nav-link active">
+          Saved Jobs
+          <span class="saved-count" id="savedCount" style="display: none;">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <h1>⭐ Your Saved Jobs</h1>
+    <p>Jobs you've bookmarked for later</p>
+  </section>
+
+  <!-- Saved Jobs Content -->
+  <main class="saved-jobs-content">
+    <div id="savedJobsList" class="jobs-list">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>JobFinder</h4>
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.6;">
+          Helping students find their first jobs and build valuable work experience.
+        </p>
+      </div>
+      <div class="footer-section">
+        <h4>Job Types</h4>
+        <ul>
+          <li><a href="/">Part-time Jobs</a></li>
+          <li><a href="/">Casual Jobs</a></li>
+          <li><a href="/">Weekend Jobs</a></li>
+          <li><a href="/">Remote Jobs</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#">Resume Tips</a></li>
+          <li><a href="#">Interview Guide</a></li>
+          <li><a href="#">Career Advice</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 JobFinder. All rights reserved. Made with ❤️ for students.</p>
+    </div>
+  </footer>
+
+  <!-- Job Detail Modal -->
+  <div id="jobModal" class="modal-overlay">
+    <div class="modal">
+      <div id="modalBody">
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Saved Jobs Page Logic
+    class SavedJobsPage {
+      constructor() {
+        this.savedJobs = this.loadSavedJobs();
+        this.init();
+      }
+      
+      init() {
+        this.updateSavedCount();
+        this.loadSavedJobDetails();
+        this.bindModalEvents();
+      }
+      
+      loadSavedJobs() {
+        try {
+          return JSON.parse(localStorage.getItem('savedJobs')) || [];
+        } catch {
+          return [];
+        }
+      }
+      
+      updateSavedCount() {
+        const countEl = document.getElementById('savedCount');
+        if (countEl) {
+          countEl.textContent = this.savedJobs.length;
+          countEl.style.display = this.savedJobs.length > 0 ? 'inline' : 'none';
+        }
+      }
+      
+      async loadSavedJobDetails() {
+        const container = document.getElementById('savedJobsList');
+        if (!container) return;
+        
+        if (this.savedJobs.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📑</div>
+              <h3>No saved jobs yet</h3>
+              <p>Browse jobs and click the star to save them for later!</p>
+              <a href="/" class="apply-btn" style="display: inline-block; margin-top: 1rem;">Browse Jobs</a>
+            </div>
+          `;
+          return;
+        }
+        
+        try {
+          const jobPromises = this.savedJobs.map(id => 
+            fetch(`/api/jobs/${id}`).then(r => r.json()).catch(() => null)
+          );
+          const jobs = await Promise.all(jobPromises);
+          const validJobs = jobs.filter(job => job && !job.error);
+          
+          if (validJobs.length === 0) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <div class="empty-state-icon">📑</div>
+                <h3>No saved jobs found</h3>
+                <p>The jobs you saved may no longer be available.</p>
+                <a href="/" class="apply-btn" style="display: inline-block; margin-top: 1rem;">Browse Jobs</a>
+              </div>
+            `;
+            return;
+          }
+          
+          container.innerHTML = validJobs.map(job => this.renderJobCard(job)).join('');
+          
+          // Bind events
+          container.querySelectorAll('.job-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+              if (!e.target.closest('.save-btn') && !e.target.closest('.apply-btn')) {
+                const jobId = card.dataset.id;
+                this.showJobDetails(jobId);
+              }
+            });
+          });
+          
+          container.querySelectorAll('.save-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const jobId = parseInt(btn.dataset.id);
+              this.removeSavedJob(jobId);
+            });
+          });
+        } catch (error) {
+          console.error('Error loading saved jobs:', error);
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">⚠️</div>
+              <h3>Error loading saved jobs</h3>
+              <p>Please try again later</p>
+            </div>
+          `;
+        }
+      }
+      
+      renderJobCard(job) {
+        let badges = `<span class="badge badge-type">${job.job_type}</span>`;
+        
+        if (!job.experience_required) {
+          badges += '<span class="badge badge-no-exp">No Experience</span>';
+        }
+        if (job.remote_option) {
+          badges += '<span class="badge badge-remote">Remote</span>';
+        }
+        if (job.flexible_hours) {
+          badges += '<span class="badge badge-flexible">Flexible Hours</span>';
+        }
+        if (job.near_campus) {
+          badges += '<span class="badge badge-campus">Near Campus</span>';
+        }
+        if (job.weekend_availability) {
+          badges += '<span class="badge badge-weekend">Weekends</span>';
+        }
+        
+        return `
+          <div class="job-card" data-id="${job.id}">
+            <div class="job-card-header">
+              <div>
+                <h3 class="job-title">${this.escapeHtml(job.title)}</h3>
+                <p class="job-company">${this.escapeHtml(job.company)}</p>
+              </div>
+              <button class="save-btn saved" data-id="${job.id}" title="Remove from saved">★</button>
+            </div>
+            <div class="job-meta">
+              <span class="job-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                ${this.escapeHtml(job.location)}
+              </span>
+              <span class="job-meta-item">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                ${job.date_posted || 'Recent'}
+              </span>
+            </div>
+            <div class="job-badges">${badges}</div>
+            <p class="job-description">${this.escapeHtml(job.description || '')}</p>
+            <div class="job-card-footer">
+              <span class="job-pay">${this.escapeHtml(job.pay_rate || 'Competitive pay')}</span>
+              <a href="${job.application_url || '#'}" target="_blank" rel="noopener noreferrer" class="apply-btn">Apply Now</a>
+            </div>
+          </div>
+        `;
+      }
+      
+      removeSavedJob(jobId) {
+        const index = this.savedJobs.indexOf(jobId);
+        if (index > -1) {
+          this.savedJobs.splice(index, 1);
+          localStorage.setItem('savedJobs', JSON.stringify(this.savedJobs));
+          this.updateSavedCount();
+          this.loadSavedJobDetails();
+          this.showToast('Job removed from saved');
+        }
+      }
+      
+      bindModalEvents() {
+        const modalOverlay = document.getElementById('jobModal');
+        
+        if (modalOverlay) {
+          modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) this.closeModal();
+          });
+        }
+        
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') this.closeModal();
+        });
+      }
+      
+      async showJobDetails(jobId) {
+        const modal = document.getElementById('jobModal');
+        const modalBody = document.getElementById('modalBody');
+        
+        if (!modal || !modalBody) return;
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        modalBody.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        
+        try {
+          const response = await fetch(`/api/jobs/${jobId}`);
+          const job = await response.json();
+          
+          let badges = `<span class="badge badge-type">${job.job_type}</span>`;
+          if (!job.experience_required) {
+            badges += '<span class="badge badge-no-exp">No Experience Required</span>';
+          }
+          if (job.remote_option) {
+            badges += '<span class="badge badge-remote">Remote Available</span>';
+          }
+          if (job.flexible_hours) {
+            badges += '<span class="badge badge-flexible">Flexible Hours</span>';
+          }
+          if (job.near_campus) {
+            badges += '<span class="badge badge-campus">Near Campus</span>';
+          }
+          if (job.weekend_availability) {
+            badges += '<span class="badge badge-weekend">Weekend Availability</span>';
+          }
+          
+          modalBody.innerHTML = `
+            <div class="modal-header">
+              <h2 class="job-title">${this.escapeHtml(job.title)}</h2>
+              <p class="job-company">${this.escapeHtml(job.company)}</p>
+              <div class="job-meta" style="margin-top: 0.75rem;">
+                <span class="job-meta-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  ${this.escapeHtml(job.location)}
+                </span>
+                <span class="job-meta-item">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  ${this.escapeHtml(job.pay_rate || 'Competitive pay')}
+                </span>
+              </div>
+              <div class="job-badges" style="margin-top: 1rem;">${badges}</div>
+              <button class="modal-close" onclick="savedJobsPage.closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="detail-section">
+                <h3>Description</h3>
+                <p>${this.escapeHtml(job.description || 'No description available.')}</p>
+              </div>
+              ${job.requirements ? `
+                <div class="detail-section">
+                  <h3>Requirements</h3>
+                  <ul>
+                    ${job.requirements.split(',').map(req => `<li>${this.escapeHtml(req.trim())}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+              <div class="detail-section">
+                <h3>Company Information</h3>
+                <p><strong>${this.escapeHtml(job.company)}</strong></p>
+                <p>Location: ${this.escapeHtml(job.location)}</p>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <a href="${job.application_url || '#'}" target="_blank" rel="noopener noreferrer" class="apply-btn">Apply Now</a>
+              <button class="share-btn" onclick="savedJobsPage.shareJob(${JSON.stringify(job).replace(/"/g, '&quot;')})">Share Job</button>
+            </div>
+          `;
+        } catch (error) {
+          console.error('Error loading job details:', error);
+          modalBody.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">⚠️</div>
+              <h3>Error loading job details</h3>
+              <p>Please try again later</p>
+            </div>
+          `;
+        }
+      }
+      
+      closeModal() {
+        const modal = document.getElementById('jobModal');
+        if (modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      }
+      
+      shareJob(job) {
+        const shareUrl = `${window.location.origin}?job=${job.id}`;
+        
+        if (navigator.share) {
+          navigator.share({
+            title: job.title,
+            text: `Check out this job: ${job.title} at ${job.company}`,
+            url: shareUrl
+          }).catch(() => {});
+        } else {
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            this.showToast('Link copied to clipboard!');
+          }).catch(() => {
+            this.showToast('Could not copy link');
+          });
+        }
+      }
+      
+      showToast(message) {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'toast';
+          toast.className = 'toast';
+          document.body.appendChild(toast);
+        }
+        
+        toast.textContent = message;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3000);
+      }
+      
+      escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      window.savedJobsPage = new SavedJobsPage();
+    });
+  </script>
+</body>
+</html>

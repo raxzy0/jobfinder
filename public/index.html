@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="JobFinder - Find part-time and casual jobs perfect for students. No experience required!">
+  <title>JobFinder - Part-Time Jobs for Students</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💼</text></svg>">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="logo">
+        <span class="logo-icon">💼</span>
+        <span>JobFinder</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/" class="nav-link active">Find Jobs</a>
+        <a href="/saved.html" class="nav-link">
+          Saved Jobs
+          <span class="saved-count" id="savedCount" style="display: none;">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Find Your Perfect Part-Time Job</h1>
+      <p>Discover flexible, student-friendly jobs that require no experience. Start earning while you learn!</p>
+      
+      <!-- Search Box -->
+      <div class="search-box">
+        <div class="search-input-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search jobs, companies, or keywords...">
+        </div>
+        <button id="searchBtn" class="search-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          Search
+        </button>
+      </div>
+      
+      <!-- Quick Stats -->
+      <div class="quick-stats">
+        <div class="stat-item">
+          <div class="stat-number" id="totalJobs">0</div>
+          <div class="stat-label">Total Jobs</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="noExpJobs">0</div>
+          <div class="stat-label">No Experience</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="remoteJobs">0</div>
+          <div class="stat-label">Remote Jobs</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Filters Sidebar -->
+    <aside class="filters-sidebar">
+      <div class="filters-header">
+        <h3>Filters</h3>
+        <button id="clearFilters" class="clear-filters-btn">Clear all</button>
+      </div>
+      
+      <!-- Location Filter -->
+      <div class="filter-section">
+        <h4>Location</h4>
+        <input type="text" id="locationFilter" class="filter-input" placeholder="City, State, or Remote">
+      </div>
+      
+      <!-- Job Type Filter -->
+      <div class="filter-section">
+        <h4>Job Type</h4>
+        <div class="filter-chips">
+          <button class="filter-chip job-type-chip" data-type="Part-time">Part-time</button>
+          <button class="filter-chip job-type-chip" data-type="Casual">Casual</button>
+          <button class="filter-chip job-type-chip" data-type="Weekend">Weekend</button>
+        </div>
+      </div>
+      
+      <!-- Student-Friendly Filters -->
+      <div class="filter-section">
+        <h4>Student-Friendly</h4>
+        <div class="filter-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="no_experienceToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">No Experience Required</span>
+        </div>
+        <div class="filter-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="flexible_hoursToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Flexible Hours</span>
+        </div>
+        <div class="filter-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="weekend_availabilityToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Weekend Shifts</span>
+        </div>
+        <div class="filter-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="remote_optionToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Remote / Work from Home</span>
+        </div>
+        <div class="filter-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="near_campusToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Near Campus</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Jobs List -->
+    <section class="jobs-section">
+      <div class="jobs-header">
+        <span id="jobsCount" class="jobs-count">Loading jobs...</span>
+        <select id="sortSelect" class="sort-select">
+          <option value="date_posted-desc">Newest First</option>
+          <option value="date_posted-asc">Oldest First</option>
+          <option value="title-asc">Title (A-Z)</option>
+          <option value="title-desc">Title (Z-A)</option>
+          <option value="company-asc">Company (A-Z)</option>
+        </select>
+      </div>
+      
+      <div id="jobsList" class="jobs-list">
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      
+      <div id="pagination" class="pagination"></div>
+    </section>
+  </main>
+
+  <!-- Tips Section -->
+  <section class="tips-section">
+    <div class="tips-content">
+      <h2>💡 Tips for First-Time Job Seekers</h2>
+      <div class="tips-grid">
+        <div class="tip-card">
+          <div class="tip-icon">📝</div>
+          <h3>Create a Simple Resume</h3>
+          <p>Even without experience, highlight your skills, education, volunteer work, and any relevant coursework.</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">🎯</div>
+          <h3>Apply to Multiple Jobs</h3>
+          <p>Don't put all your eggs in one basket. Apply to several positions to increase your chances of getting hired.</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">⏰</div>
+          <h3>Be Flexible</h3>
+          <p>Employers love students who can work various shifts. Show them you're adaptable and reliable.</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">💪</div>
+          <h3>Highlight Soft Skills</h3>
+          <p>Communication, teamwork, and problem-solving are valuable skills that don't require work experience.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>JobFinder</h4>
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.6;">
+          Helping students find their first jobs and build valuable work experience.
+        </p>
+      </div>
+      <div class="footer-section">
+        <h4>Job Types</h4>
+        <ul>
+          <li><a href="#">Part-time Jobs</a></li>
+          <li><a href="#">Casual Jobs</a></li>
+          <li><a href="#">Weekend Jobs</a></li>
+          <li><a href="#">Remote Jobs</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#">Resume Tips</a></li>
+          <li><a href="#">Interview Guide</a></li>
+          <li><a href="#">Career Advice</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 JobFinder. All rights reserved. Made with ❤️ for students.</p>
+    </div>
+  </footer>
+
+  <!-- Job Detail Modal -->
+  <div id="jobModal" class="modal-overlay">
+    <div class="modal">
+      <div id="modalBody">
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
