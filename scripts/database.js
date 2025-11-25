@@ -1,7 +1,8 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '..', 'data', 'jobs.db');
+// Database path can be configured via environment variable
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '..', 'data', 'jobs.db');
 
 function initDatabase() {
   const db = new Database(dbPath);

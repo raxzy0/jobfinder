@@ -565,6 +565,27 @@ button {
   background: var(--primary-hover);
 }
 
+/* Save Button Full (Modal) */
+.save-btn-full {
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.save-btn-full:hover {
+  background: var(--border-color);
+}
+
+.save-btn-full.saved {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
 /* Job Detail Modal */
 .modal-overlay {
   position: fixed;

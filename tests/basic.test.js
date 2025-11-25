@@ -57,4 +57,4 @@ test('Required backend files exist', () => {
   assert.ok(fs.existsSync(path.join(rootDir, 'package.json')), 'package.json should exist');
 });
 
-console.log('All tests passed!');
+// Test runner will output results automatically

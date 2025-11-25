@@ -401,7 +401,7 @@ class JobFinder {
         <div class="modal-actions">
           <a href="${job.application_url || '#'}" target="_blank" rel="noopener noreferrer" class="apply-btn">Apply Now</a>
           <button class="share-btn" id="shareJobBtn">Share Job</button>
-          <button class="save-btn-full ${isSaved ? 'saved' : ''}" id="modalSaveBtn" data-id="${job.id}" style="background: ${isSaved ? 'var(--accent-color)' : 'var(--background-color)'}; border: 1px solid ${isSaved ? 'var(--accent-color)' : 'var(--border-color)'}; color: ${isSaved ? 'white' : 'var(--text-primary)'}; padding: 0.875rem 1.25rem; border-radius: var(--radius-md); font-weight: 500;">
+          <button class="save-btn-full ${isSaved ? 'saved' : ''}" id="modalSaveBtn" data-id="${job.id}">
             ${isSaved ? '★ Saved' : '☆ Save Job'}
           </button>
         </div>

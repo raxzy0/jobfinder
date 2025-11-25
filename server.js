@@ -1,10 +1,20 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
 const { getDatabase, initDatabase } = require('./scripts/database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Rate limiting middleware
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Middleware
 app.use(cors());
@@ -22,7 +32,7 @@ try {
 // API Routes
 
 // GET /api/jobs - List all jobs with filtering
-app.get('/api/jobs', (req, res) => {
+app.get('/api/jobs', apiLimiter, (req, res) => {
   try {
     const db = getDatabase();
     
@@ -154,7 +164,7 @@ app.get('/api/jobs', (req, res) => {
 });
 
 // GET /api/jobs/:id - Get specific job details
-app.get('/api/jobs/:id', (req, res) => {
+app.get('/api/jobs/:id', apiLimiter, (req, res) => {
   try {
     const db = getDatabase();
     const { id } = req.params;
@@ -174,7 +184,7 @@ app.get('/api/jobs/:id', (req, res) => {
 });
 
 // POST /api/jobs/search - Advanced search
-app.post('/api/jobs/search', (req, res) => {
+app.post('/api/jobs/search', apiLimiter, (req, res) => {
   try {
     const db = getDatabase();
     
@@ -264,7 +274,7 @@ app.post('/api/jobs/search', (req, res) => {
 });
 
 // GET /api/stats - Get job statistics
-app.get('/api/stats', (req, res) => {
+app.get('/api/stats', apiLimiter, (req, res) => {
   try {
     const db = getDatabase();
     
@@ -293,7 +303,7 @@ app.get('/api/stats', (req, res) => {
 });
 
 // Serve the main HTML file for all non-API routes
-app.get('*', (req, res) => {
+app.get('*', apiLimiter, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
