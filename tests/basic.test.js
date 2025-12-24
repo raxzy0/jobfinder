@@ -11,6 +11,22 @@ test('Database module exists and exports required functions', () => {
   assert.ok(db.dbPath, 'dbPath should be exported');
 });
 
+// Test that database directory is automatically created
+test('Database directory is automatically created if missing', () => {
+  const { initDatabase, dbPath } = require('../scripts/database');
+  const dbDir = path.dirname(dbPath);
+  
+  // Initialize database (directory should be created automatically)
+  const db = initDatabase();
+  assert.ok(db, 'Database should be created');
+  
+  // Verify the directory was created
+  assert.ok(fs.existsSync(dbDir), 'Database directory should exist');
+  assert.ok(fs.existsSync(dbPath), 'Database file should exist');
+  
+  db.close();
+});
+
 // Test that seed script creates sample data
 test('Database can be initialized and queried', () => {
   const { initDatabase, getDatabase } = require('../scripts/database');
