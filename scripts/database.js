@@ -26,9 +26,11 @@ function initDatabase() {
       date_posted TEXT DEFAULT (date('now')),
       source TEXT,
       flexible_hours INTEGER DEFAULT 0,
-      weekend_availability INTEGER DEFAULT 0,
       remote_option INTEGER DEFAULT 0,
-      near_campus INTEGER DEFAULT 0,
+      student_level TEXT DEFAULT 'any',
+      skills TEXT,
+      degree_requirements TEXT,
+      application_deadline TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     )
@@ -38,6 +40,7 @@ function initDatabase() {
   db.exec(`CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_jobs_type ON jobs(job_type)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_jobs_experience ON jobs(experience_required)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_jobs_student_level ON jobs(student_level)`);
   
   return db;
 }
