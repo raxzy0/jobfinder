@@ -20,24 +20,6 @@ const sampleJobs = [
     application_deadline: "2024-09-30"
   },
   {
-    title: "Software Engineering Intern - Summer Vacation Program",
-    company: "Atlassian",
-    location: "Sydney, NSW",
-    job_type: "Internship",
-    experience_required: 0,
-    description: "Join Atlassian's Summer Vacation Program! Work on real projects alongside experienced engineers. Perfect for first-year CS students looking to gain industry experience. This 10-12 week program includes mentorship, training, and the opportunity to contribute to products used by millions.",
-    requirements: "Currently enrolled in first or second year Computer Science, Software Engineering, or related degree. Basic programming knowledge in any language. Passion for technology and problem-solving.",
-    pay_rate: "$28-32/hour",
-    application_url: "https://www.atlassian.com/company/careers/students",
-    source: "direct",
-    flexible_hours: 0,
-    remote_option: 0,
-    student_level: "first_year",
-    skills: "Programming fundamentals, Problem solving, Teamwork",
-    degree_requirements: "Computer Science, Software Engineering, IT",
-    application_deadline: "2024-09-30"
-  },
-  {
     title: "IT Support Intern",
     company: "Macquarie Group",
     location: "Sydney, NSW",
