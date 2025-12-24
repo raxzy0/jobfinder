@@ -42,9 +42,9 @@ app.get('/api/jobs', apiLimiter, (req, res) => {
       job_type,
       no_experience,
       flexible_hours,
-      weekend_availability,
       remote_option,
-      near_campus,
+      student_level,
+      skills,
       sort_by = 'date_posted',
       sort_order = 'desc',
       page = 1,
@@ -54,11 +54,11 @@ app.get('/api/jobs', apiLimiter, (req, res) => {
     let query = 'SELECT * FROM jobs WHERE 1=1';
     const params = [];
     
-    // Search filter (title, company, description)
+    // Search filter (title, company, description, skills)
     if (search) {
-      query += ' AND (title LIKE ? OR company LIKE ? OR description LIKE ?)';
+      query += ' AND (title LIKE ? OR company LIKE ? OR description LIKE ? OR skills LIKE ?)';
       const searchTerm = `%${search}%`;
-      params.push(searchTerm, searchTerm, searchTerm);
+      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
     }
     
     // Location filter
@@ -83,23 +83,25 @@ app.get('/api/jobs', apiLimiter, (req, res) => {
       query += ' AND flexible_hours = 1';
     }
     
-    // Weekend availability filter
-    if (weekend_availability === 'true' || weekend_availability === '1') {
-      query += ' AND weekend_availability = 1';
-    }
-    
     // Remote option filter
     if (remote_option === 'true' || remote_option === '1') {
       query += ' AND remote_option = 1';
     }
     
-    // Near campus filter
-    if (near_campus === 'true' || near_campus === '1') {
-      query += ' AND near_campus = 1';
+    // Student level filter
+    if (student_level) {
+      query += ' AND (student_level = ? OR student_level = ?)';
+      params.push(student_level, 'any');
+    }
+    
+    // Skills filter
+    if (skills) {
+      query += ' AND skills LIKE ?';
+      params.push(`%${skills}%`);
     }
     
     // Sorting
-    const validSortFields = ['date_posted', 'title', 'company', 'created_at'];
+    const validSortFields = ['date_posted', 'title', 'company', 'created_at', 'application_deadline'];
     const sortField = validSortFields.includes(sort_by) ? sort_by : 'date_posted';
     const order = sort_order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
     query += ` ORDER BY ${sortField} ${order}`;
@@ -116,9 +118,9 @@ app.get('/api/jobs', apiLimiter, (req, res) => {
     const countParams = [];
     
     if (search) {
-      countQuery += ' AND (title LIKE ? OR company LIKE ? OR description LIKE ?)';
+      countQuery += ' AND (title LIKE ? OR company LIKE ? OR description LIKE ? OR skills LIKE ?)';
       const searchTerm = `%${search}%`;
-      countParams.push(searchTerm, searchTerm, searchTerm);
+      countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
     }
     if (location) {
       countQuery += ' AND location LIKE ?';
@@ -134,14 +136,16 @@ app.get('/api/jobs', apiLimiter, (req, res) => {
     if (flexible_hours === 'true' || flexible_hours === '1') {
       countQuery += ' AND flexible_hours = 1';
     }
-    if (weekend_availability === 'true' || weekend_availability === '1') {
-      countQuery += ' AND weekend_availability = 1';
-    }
     if (remote_option === 'true' || remote_option === '1') {
       countQuery += ' AND remote_option = 1';
     }
-    if (near_campus === 'true' || near_campus === '1') {
-      countQuery += ' AND near_campus = 1';
+    if (student_level) {
+      countQuery += ' AND (student_level = ? OR student_level = ?)';
+      countParams.push(student_level, 'any');
+    }
+    if (skills) {
+      countQuery += ' AND skills LIKE ?';
+      countParams.push(`%${skills}%`);
     }
     
     const { total } = db.prepare(countQuery).get(...countParams);
@@ -281,10 +285,12 @@ app.get('/api/stats', apiLimiter, (req, res) => {
     const totalJobs = db.prepare('SELECT COUNT(*) as count FROM jobs').get().count;
     const noExperienceJobs = db.prepare('SELECT COUNT(*) as count FROM jobs WHERE experience_required = 0').get().count;
     const remoteJobs = db.prepare('SELECT COUNT(*) as count FROM jobs WHERE remote_option = 1').get().count;
-    const partTimeJobs = db.prepare("SELECT COUNT(*) as count FROM jobs WHERE job_type = 'Part-time'").get().count;
+    const firstYearJobs = db.prepare("SELECT COUNT(*) as count FROM jobs WHERE student_level = 'first_year' OR student_level = 'any'").get().count;
+    const penultimateJobs = db.prepare("SELECT COUNT(*) as count FROM jobs WHERE student_level = 'penultimate' OR student_level = 'any'").get().count;
+    const finalYearJobs = db.prepare("SELECT COUNT(*) as count FROM jobs WHERE student_level = 'final_year' OR student_level = 'any'").get().count;
     
     const locations = db.prepare('SELECT DISTINCT location FROM jobs ORDER BY location').all();
-    const jobTypes = db.prepare('SELECT DISTINCT job_type FROM jobs ORDER BY job_type').all();
+    const companies = db.prepare('SELECT DISTINCT company FROM jobs ORDER BY company').all();
     
     db.close();
     
@@ -292,13 +298,147 @@ app.get('/api/stats', apiLimiter, (req, res) => {
       totalJobs,
       noExperienceJobs,
       remoteJobs,
-      partTimeJobs,
+      firstYearJobs,
+      penultimateJobs,
+      finalYearJobs,
       locations: locations.map(l => l.location),
-      jobTypes: jobTypes.map(j => j.job_type)
+      companies: companies.map(c => c.company)
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+// GET /api/internships - List internships with student level filtering (alias for /api/jobs)
+app.get('/api/internships', apiLimiter, (req, res) => {
+  try {
+    const db = getDatabase();
+    
+    const {
+      student_level,
+      skills,
+      search,
+      location = 'Sydney',  // Default to Sydney
+      remote_option,
+      sort_by = 'date_posted',
+      sort_order = 'desc',
+      page = 1,
+      limit = 20
+    } = req.query;
+    
+    let query = 'SELECT * FROM jobs WHERE 1=1';
+    const params = [];
+    
+    // Student level filter (primary filter for this endpoint)
+    if (student_level) {
+      query += ' AND (student_level = ? OR student_level = ?)';
+      params.push(student_level, 'any');
+    }
+    
+    // Search filter
+    if (search) {
+      query += ' AND (title LIKE ? OR company LIKE ? OR description LIKE ? OR skills LIKE ?)';
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+    
+    // Location filter (default to Sydney)
+    if (location) {
+      query += ' AND location LIKE ?';
+      params.push(`%${location}%`);
+    }
+    
+    // Skills filter
+    if (skills) {
+      query += ' AND skills LIKE ?';
+      params.push(`%${skills}%`);
+    }
+    
+    // Remote option filter
+    if (remote_option === 'true' || remote_option === '1') {
+      query += ' AND remote_option = 1';
+    }
+    
+    // Sorting
+    const validSortFields = ['date_posted', 'title', 'company', 'application_deadline'];
+    const sortField = validSortFields.includes(sort_by) ? sort_by : 'date_posted';
+    const order = sort_order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+    query += ` ORDER BY ${sortField} ${order}`;
+    
+    // Pagination
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    query += ' LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), offset);
+    
+    const internships = db.prepare(query).all(...params);
+    
+    // Get total count
+    let countQuery = 'SELECT COUNT(*) as total FROM jobs WHERE 1=1';
+    const countParams = [];
+    
+    if (student_level) {
+      countQuery += ' AND (student_level = ? OR student_level = ?)';
+      countParams.push(student_level, 'any');
+    }
+    if (search) {
+      countQuery += ' AND (title LIKE ? OR company LIKE ? OR description LIKE ? OR skills LIKE ?)';
+      const searchTerm = `%${search}%`;
+      countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+    if (location) {
+      countQuery += ' AND location LIKE ?';
+      countParams.push(`%${location}%`);
+    }
+    if (skills) {
+      countQuery += ' AND skills LIKE ?';
+      countParams.push(`%${skills}%`);
+    }
+    if (remote_option === 'true' || remote_option === '1') {
+      countQuery += ' AND remote_option = 1';
+    }
+    
+    const { total } = db.prepare(countQuery).get(...countParams);
+    
+    db.close();
+    
+    res.json({
+      internships,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching internships:', error);
+    res.status(500).json({ error: 'Failed to fetch internships' });
+  }
+});
+
+// POST /api/scrape - Trigger scraping (simple version, no auth for now)
+app.post('/api/scrape', apiLimiter, async (req, res) => {
+  try {
+    const InternshipScraper = require('./scripts/scraper');
+    const scraper = new InternshipScraper();
+    
+    console.log('Manual scraping triggered via API');
+    const result = await scraper.scrape();
+    
+    res.json({
+      success: true,
+      message: 'Scraping completed',
+      jobsScraped: result.jobsScraped,
+      errors: result.errors
+    });
+  } catch (error) {
+    console.error('Error running scraper:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to run scraper',
+      message: error.message
+    });
   }
 });
 
