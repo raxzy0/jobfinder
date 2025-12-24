@@ -1,19 +1,18 @@
-// JobFinder Application
-class JobFinder {
+// CS Internship Finder Application
+class InternshipFinder {
   constructor() {
-    this.jobs = [];
-    this.savedJobs = this.loadSavedJobs();
+    this.internships = [];
+    this.savedInternships = this.loadSavedInternships();
     this.currentPage = 1;
     this.totalPages = 1;
     this.filters = {
       search: '',
-      location: '',
-      job_type: '',
+      location: 'Sydney',
+      student_level: '',
+      skills: '',
       no_experience: false,
       flexible_hours: false,
-      weekend_availability: false,
       remote_option: false,
-      near_campus: false,
       sort_by: 'date_posted',
       sort_order: 'desc'
     };
@@ -24,7 +23,7 @@ class JobFinder {
   init() {
     this.bindEvents();
     this.loadStats();
-    this.loadJobs();
+    this.loadInternships();
     this.updateSavedCount();
   }
   
@@ -49,38 +48,48 @@ class JobFinder {
       locationInput.addEventListener('input', this.debounce(() => {
         this.filters.location = locationInput.value;
         this.currentPage = 1;
-        this.loadJobs();
+        this.loadInternships();
       }, 300));
     }
     
-    // Job type chips
-    document.querySelectorAll('.job-type-chip').forEach(chip => {
+    // Skills filter
+    const skillsInput = document.getElementById('skillsFilter');
+    if (skillsInput) {
+      skillsInput.addEventListener('input', this.debounce(() => {
+        this.filters.skills = skillsInput.value;
+        this.currentPage = 1;
+        this.loadInternships();
+      }, 300));
+    }
+    
+    // Student level chips
+    document.querySelectorAll('.student-level-chip').forEach(chip => {
       chip.addEventListener('click', () => {
-        const type = chip.dataset.type;
+        const level = chip.dataset.level;
         
-        document.querySelectorAll('.job-type-chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.student-level-chip').forEach(c => c.classList.remove('active'));
         
-        if (this.filters.job_type === type) {
-          this.filters.job_type = '';
+        if (this.filters.student_level === level) {
+          this.filters.student_level = '';
         } else {
           chip.classList.add('active');
-          this.filters.job_type = type;
+          this.filters.student_level = level;
         }
         
         this.currentPage = 1;
-        this.loadJobs();
+        this.loadInternships();
       });
     });
     
     // Toggle filters
-    const toggleFilters = ['no_experience', 'flexible_hours', 'weekend_availability', 'remote_option', 'near_campus'];
+    const toggleFilters = ['no_experience', 'flexible_hours', 'remote_option'];
     toggleFilters.forEach(filter => {
       const toggle = document.getElementById(`${filter}Toggle`);
       if (toggle) {
         toggle.addEventListener('change', () => {
           this.filters[filter] = toggle.checked;
           this.currentPage = 1;
-          this.loadJobs();
+          this.loadInternships();
         });
       }
     });
@@ -92,7 +101,7 @@ class JobFinder {
         const [sort_by, sort_order] = sortSelect.value.split('-');
         this.filters.sort_by = sort_by;
         this.filters.sort_order = sort_order;
-        this.loadJobs();
+        this.loadInternships();
       });
     }
     
@@ -128,14 +137,15 @@ class JobFinder {
       const stats = await response.json();
       
       document.getElementById('totalJobs').textContent = stats.totalJobs;
-      document.getElementById('noExpJobs').textContent = stats.noExperienceJobs;
+      document.getElementById('firstYearJobs').textContent = stats.firstYearJobs;
+      document.getElementById('penultimateJobs').textContent = stats.penultimateJobs + stats.finalYearJobs;
       document.getElementById('remoteJobs').textContent = stats.remoteJobs;
     } catch (error) {
       console.error('Error loading stats:', error);
     }
   }
   
-  async loadJobs() {
+  async loadInternships() {
     const jobsList = document.getElementById('jobsList');
     if (!jobsList) return;
     
@@ -151,50 +161,49 @@ class JobFinder {
       
       if (this.filters.search) params.append('search', this.filters.search);
       if (this.filters.location) params.append('location', this.filters.location);
-      if (this.filters.job_type) params.append('job_type', this.filters.job_type);
+      if (this.filters.student_level) params.append('student_level', this.filters.student_level);
+      if (this.filters.skills) params.append('skills', this.filters.skills);
       if (this.filters.no_experience) params.append('no_experience', 'true');
       if (this.filters.flexible_hours) params.append('flexible_hours', 'true');
-      if (this.filters.weekend_availability) params.append('weekend_availability', 'true');
       if (this.filters.remote_option) params.append('remote_option', 'true');
-      if (this.filters.near_campus) params.append('near_campus', 'true');
       
       const response = await fetch(`/api/jobs?${params}`);
       const data = await response.json();
       
-      this.jobs = data.jobs;
+      this.internships = data.jobs;
       this.totalPages = data.pagination.totalPages;
       
-      this.renderJobs();
+      this.renderInternships();
       this.renderPagination();
-      this.updateJobsCount(data.pagination.total);
+      this.updateInternshipsCount(data.pagination.total);
     } catch (error) {
-      console.error('Error loading jobs:', error);
+      console.error('Error loading internships:', error);
       jobsList.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">⚠️</div>
-          <h3>Error loading jobs</h3>
+          <h3>Error loading internships</h3>
           <p>Please try again later</p>
         </div>
       `;
     }
   }
   
-  renderJobs() {
+  renderInternships() {
     const jobsList = document.getElementById('jobsList');
     if (!jobsList) return;
     
-    if (this.jobs.length === 0) {
+    if (this.internships.length === 0) {
       jobsList.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">🔍</div>
-          <h3>No jobs found</h3>
+          <h3>No internships found</h3>
           <p>Try adjusting your filters or search terms</p>
         </div>
       `;
       return;
     }
     
-    jobsList.innerHTML = this.jobs.map(job => this.renderJobCard(job)).join('');
+    jobsList.innerHTML = this.internships.map(job => this.renderJobCard(job)).join('');
     
     // Bind card click events
     jobsList.querySelectorAll('.job-card').forEach(card => {
@@ -224,24 +233,62 @@ class JobFinder {
   }
   
   renderJobCard(job) {
-    const isSaved = this.savedJobs.includes(job.id);
+    const isSaved = this.savedInternships.includes(job.id);
     
-    let badges = `<span class="badge badge-type">${job.job_type}</span>`;
+    // Student level badge
+    const studentLevelMap = {
+      'first_year': 'First Year',
+      'penultimate': 'Penultimate',
+      'final_year': 'Final Year',
+      'any': 'All Levels'
+    };
+    
+    let badges = `<span class="badge badge-level">${studentLevelMap[job.student_level] || 'All Levels'}</span>`;
     
     if (!job.experience_required) {
-      badges += '<span class="badge badge-no-exp">No Experience</span>';
+      badges += '<span class="badge badge-no-exp">Entry Level</span>';
     }
     if (job.remote_option) {
       badges += '<span class="badge badge-remote">Remote</span>';
     }
     if (job.flexible_hours) {
-      badges += '<span class="badge badge-flexible">Flexible Hours</span>';
+      badges += '<span class="badge badge-flexible">Flexible</span>';
     }
-    if (job.near_campus) {
-      badges += '<span class="badge badge-campus">Near Campus</span>';
+    
+    // Skills badges (show first 3)
+    if (job.skills) {
+      const skillsArray = job.skills.split(',').slice(0, 3);
+      skillsArray.forEach(skill => {
+        badges += `<span class="badge badge-skill">${this.escapeHtml(skill.trim())}</span>`;
+      });
     }
-    if (job.weekend_availability) {
-      badges += '<span class="badge badge-weekend">Weekends</span>';
+    
+    // Deadline info
+    let deadlineHtml = '';
+    if (job.application_deadline) {
+      const deadline = new Date(job.application_deadline);
+      const today = new Date();
+      const daysUntil = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntil > 0 && daysUntil <= 30) {
+        deadlineHtml = `
+          <span class="job-meta-item deadline-urgent">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Due in ${daysUntil} days
+          </span>
+        `;
+      } else if (daysUntil > 30) {
+        deadlineHtml = `
+          <span class="job-meta-item">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            ${deadline.toLocaleDateString()}
+          </span>
+        `;
+      }
     }
     
     return `
@@ -251,7 +298,7 @@ class JobFinder {
             <h3 class="job-title">${this.escapeHtml(job.title)}</h3>
             <p class="job-company">${this.escapeHtml(job.company)}</p>
           </div>
-          <button class="save-btn ${isSaved ? 'saved' : ''}" data-id="${job.id}" title="${isSaved ? 'Remove from saved' : 'Save job'}">
+          <button class="save-btn ${isSaved ? 'saved' : ''}" data-id="${job.id}" title="${isSaved ? 'Remove from saved' : 'Save internship'}">
             ${isSaved ? '★' : '☆'}
           </button>
         </div>
@@ -269,11 +316,12 @@ class JobFinder {
             </svg>
             ${job.date_posted || 'Recent'}
           </span>
+          ${deadlineHtml}
         </div>
         <div class="job-badges">${badges}</div>
-        <p class="job-description">${this.escapeHtml(job.description || '')}</p>
+        <p class="job-description">${this.escapeHtml(job.description || '').substring(0, 150)}...</p>
         <div class="job-card-footer">
-          <span class="job-pay">${this.escapeHtml(job.pay_rate || 'Competitive pay')}</span>
+          <span class="job-pay">${this.escapeHtml(job.pay_rate || 'Competitive salary')}</span>
           <a href="${job.application_url || '#'}" target="_blank" rel="noopener noreferrer" class="apply-btn">Apply Now</a>
         </div>
       </div>
@@ -310,17 +358,17 @@ class JobFinder {
         const page = parseInt(btn.dataset.page);
         if (page >= 1 && page <= this.totalPages) {
           this.currentPage = page;
-          this.loadJobs();
+          this.loadInternships();
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       });
     });
   }
   
-  updateJobsCount(total) {
+  updateInternshipsCount(total) {
     const countEl = document.getElementById('jobsCount');
     if (countEl) {
-      countEl.innerHTML = `Showing <strong>${this.jobs.length}</strong> of <strong>${total}</strong> jobs`;
+      countEl.innerHTML = `Showing <strong>${this.internships.length}</strong> of <strong>${total}</strong> internships`;
     }
   }
   
@@ -446,47 +494,49 @@ class JobFinder {
   clearFilters() {
     this.filters = {
       search: '',
-      location: '',
-      job_type: '',
+      location: 'Sydney',
+      student_level: '',
+      skills: '',
       no_experience: false,
       flexible_hours: false,
-      weekend_availability: false,
       remote_option: false,
-      near_campus: false,
       sort_by: 'date_posted',
       sort_order: 'desc'
     };
     
     // Reset UI
     document.getElementById('searchInput').value = '';
-    document.getElementById('locationFilter').value = '';
-    document.querySelectorAll('.job-type-chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('locationFilter').value = 'Sydney';
+    document.getElementById('skillsFilter').value = '';
+    document.querySelectorAll('.student-level-chip').forEach(c => c.classList.remove('active'));
     document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
     document.getElementById('sortSelect').value = 'date_posted-desc';
     
     this.currentPage = 1;
-    this.loadJobs();
+    this.loadInternships();
   }
   
   toggleSaveJob(jobId) {
-    const index = this.savedJobs.indexOf(jobId);
+    const index = this.savedInternships.indexOf(jobId);
     
     if (index > -1) {
-      this.savedJobs.splice(index, 1);
-      this.showToast('Job removed from saved');
+      this.savedInternships.splice(index, 1);
+      this.showToast('Internship removed from saved');
     } else {
-      this.savedJobs.push(jobId);
-      this.showToast('Job saved!');
+      this.savedInternships.push(jobId);
+      this.showToast('Internship saved!');
     }
     
-    localStorage.setItem('savedJobs', JSON.stringify(this.savedJobs));
+    localStorage.setItem('savedInternships', JSON.stringify(this.savedInternships));
     this.updateSavedCount();
-    this.renderJobs();
+    this.renderInternships();
   }
   
-  loadSavedJobs() {
+  loadSavedInternships() {
     try {
-      return JSON.parse(localStorage.getItem('savedJobs')) || [];
+      // Also check for old savedJobs key for backwards compatibility
+      const saved = localStorage.getItem('savedInternships') || localStorage.getItem('savedJobs');
+      return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
@@ -495,14 +545,14 @@ class JobFinder {
   updateSavedCount() {
     const countEl = document.getElementById('savedCount');
     if (countEl) {
-      countEl.textContent = this.savedJobs.length;
-      countEl.style.display = this.savedJobs.length > 0 ? 'inline' : 'none';
+      countEl.textContent = this.savedInternships.length;
+      countEl.style.display = this.savedInternships.length > 0 ? 'inline' : 'none';
     }
   }
   
   shareJob(job) {
     const shareUrl = `${window.location.origin}?job=${job.id}`;
-    const shareText = `Check out this job: ${job.title} at ${job.company}`;
+    const shareText = `Check out this internship: ${job.title} at ${job.company}`;
     
     if (navigator.share) {
       navigator.share({
@@ -554,14 +604,14 @@ class JobFinder {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  window.jobFinder = new JobFinder();
+  window.internshipFinder = new InternshipFinder();
   
   // Check for job ID in URL params
   const urlParams = new URLSearchParams(window.location.search);
   const jobId = urlParams.get('job');
   if (jobId) {
     setTimeout(() => {
-      window.jobFinder.showJobDetails(jobId);
+      window.internshipFinder.showJobDetails(jobId);
     }, 500);
   }
 });

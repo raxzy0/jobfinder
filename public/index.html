@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="JobFinder - Find part-time and casual jobs perfect for students. No experience required!">
-  <title>JobFinder - Part-Time Jobs for Students</title>
+  <meta name="description" content="CS Internship Finder - Find computer science internships in Sydney/NSW for students at all levels">
+  <title>CS Internship Finder - Sydney/NSW Tech Internships</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💼</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
 </head>
 <body>
   <!-- Header -->
   <header class="header">
     <div class="header-content">
       <a href="/" class="logo">
-        <span class="logo-icon">💼</span>
-        <span>JobFinder</span>
+        <span class="logo-icon">💻</span>
+        <span>CS Internship Finder</span>
       </a>
       <nav class="nav-links">
-        <a href="/" class="nav-link active">Find Jobs</a>
+        <a href="/" class="nav-link active">Find Internships</a>
         <a href="/saved.html" class="nav-link">
-          Saved Jobs
+          Saved Internships
           <span class="saved-count" id="savedCount" style="display: none;">0</span>
         </a>
       </nav>
@@ -32,8 +32,8 @@
   <!-- Hero Section -->
   <section class="hero">
     <div class="hero-content">
-      <h1>Find Your Perfect Part-Time Job</h1>
-      <p>Discover flexible, student-friendly jobs that require no experience. Start earning while you learn!</p>
+      <h1>Find Your CS Internship in Sydney/NSW</h1>
+      <p>Discover computer science, software engineering, and tech internships tailored to your study level. Start building your career today!</p>
       
       <!-- Search Box -->
       <div class="search-box">
@@ -41,7 +41,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          <input type="text" id="searchInput" class="search-input" placeholder="Search jobs, companies, or keywords...">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search by skills, company, or role...">
         </div>
         <button id="searchBtn" class="search-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -55,15 +55,19 @@
       <div class="quick-stats">
         <div class="stat-item">
           <div class="stat-number" id="totalJobs">0</div>
-          <div class="stat-label">Total Jobs</div>
+          <div class="stat-label">Total Internships</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number" id="noExpJobs">0</div>
-          <div class="stat-label">No Experience</div>
+          <div class="stat-number" id="firstYearJobs">0</div>
+          <div class="stat-label">First Year</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="penultimateJobs">0</div>
+          <div class="stat-label">Penultimate/Final</div>
         </div>
         <div class="stat-item">
           <div class="stat-number" id="remoteJobs">0</div>
-          <div class="stat-label">Remote Jobs</div>
+          <div class="stat-label">Remote Options</div>
         </div>
       </div>
     </div>
@@ -78,31 +82,45 @@
         <button id="clearFilters" class="clear-filters-btn">Clear all</button>
       </div>
       
-      <!-- Location Filter -->
+      <!-- Student Level Filter -->
       <div class="filter-section">
-        <h4>Location</h4>
-        <input type="text" id="locationFilter" class="filter-input" placeholder="City, State, or Remote">
-      </div>
-      
-      <!-- Job Type Filter -->
-      <div class="filter-section">
-        <h4>Job Type</h4>
+        <h4>Study Level</h4>
         <div class="filter-chips">
-          <button class="filter-chip job-type-chip" data-type="Part-time">Part-time</button>
-          <button class="filter-chip job-type-chip" data-type="Casual">Casual</button>
-          <button class="filter-chip job-type-chip" data-type="Weekend">Weekend</button>
+          <button class="filter-chip student-level-chip" data-level="first_year">First Year</button>
+          <button class="filter-chip student-level-chip" data-level="penultimate">Penultimate</button>
+          <button class="filter-chip student-level-chip" data-level="final_year">Final Year</button>
+          <button class="filter-chip student-level-chip" data-level="any">All Levels</button>
         </div>
       </div>
       
-      <!-- Student-Friendly Filters -->
+      <!-- Location Filter -->
       <div class="filter-section">
-        <h4>Student-Friendly</h4>
+        <h4>Location</h4>
+        <input type="text" id="locationFilter" class="filter-input" placeholder="Sydney, NSW" value="Sydney">
+      </div>
+      
+      <!-- Skills Filter -->
+      <div class="filter-section">
+        <h4>Skills</h4>
+        <input type="text" id="skillsFilter" class="filter-input" placeholder="e.g., Python, JavaScript, React">
+      </div>
+      
+      <!-- Internship Features -->
+      <div class="filter-section">
+        <h4>Features</h4>
         <div class="filter-toggle">
           <label class="toggle-switch">
             <input type="checkbox" id="no_experienceToggle">
             <span class="toggle-slider"></span>
           </label>
-          <span class="toggle-label">No Experience Required</span>
+          <span class="toggle-label">Entry Level (No Experience)</span>
+        </div>
+        <div class="filter-toggle">
+          <label class="toggle-switch">
+            <input type="checkbox" id="remote_optionToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Remote / Hybrid</span>
         </div>
         <div class="filter-toggle">
           <label class="toggle-switch">
@@ -111,39 +129,18 @@
           </label>
           <span class="toggle-label">Flexible Hours</span>
         </div>
-        <div class="filter-toggle">
-          <label class="toggle-switch">
-            <input type="checkbox" id="weekend_availabilityToggle">
-            <span class="toggle-slider"></span>
-          </label>
-          <span class="toggle-label">Weekend Shifts</span>
-        </div>
-        <div class="filter-toggle">
-          <label class="toggle-switch">
-            <input type="checkbox" id="remote_optionToggle">
-            <span class="toggle-slider"></span>
-          </label>
-          <span class="toggle-label">Remote / Work from Home</span>
-        </div>
-        <div class="filter-toggle">
-          <label class="toggle-switch">
-            <input type="checkbox" id="near_campusToggle">
-            <span class="toggle-slider"></span>
-          </label>
-          <span class="toggle-label">Near Campus</span>
-        </div>
       </div>
     </aside>
 
     <!-- Jobs List -->
     <section class="jobs-section">
       <div class="jobs-header">
-        <span id="jobsCount" class="jobs-count">Loading jobs...</span>
+        <span id="jobsCount" class="jobs-count">Loading internships...</span>
         <select id="sortSelect" class="sort-select">
           <option value="date_posted-desc">Newest First</option>
           <option value="date_posted-asc">Oldest First</option>
+          <option value="application_deadline-asc">Deadline (Soonest)</option>
           <option value="title-asc">Title (A-Z)</option>
-          <option value="title-desc">Title (Z-A)</option>
           <option value="company-asc">Company (A-Z)</option>
         </select>
       </div>
@@ -161,27 +158,37 @@
   <!-- Tips Section -->
   <section class="tips-section">
     <div class="tips-content">
-      <h2>💡 Tips for First-Time Job Seekers</h2>
+      <h2>💡 Tips for Landing Your CS Internship</h2>
       <div class="tips-grid">
         <div class="tip-card">
-          <div class="tip-icon">📝</div>
-          <h3>Create a Simple Resume</h3>
-          <p>Even without experience, highlight your skills, education, volunteer work, and any relevant coursework.</p>
+          <div class="tip-icon">🎯</div>
+          <h3>Build Your Portfolio</h3>
+          <p>Create a GitHub account and showcase personal projects. Even small projects demonstrate your passion and coding skills to employers.</p>
         </div>
         <div class="tip-card">
-          <div class="tip-icon">🎯</div>
-          <h3>Apply to Multiple Jobs</h3>
-          <p>Don't put all your eggs in one basket. Apply to several positions to increase your chances of getting hired.</p>
+          <div class="tip-icon">💻</div>
+          <h3>Practice Technical Interviews</h3>
+          <p>Use platforms like LeetCode, HackerRank, or Codewars to practice coding problems. Many tech internships include technical assessments.</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">🤝</div>
+          <h3>Network & Attend Tech Events</h3>
+          <p>Join university tech clubs, attend hackathons, and connect with recruiters on LinkedIn. Many internships are filled through networking.</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">📝</div>
+          <h3>Tailor Your Resume</h3>
+          <p>Highlight relevant coursework, projects, and technical skills. Use keywords from the job description to pass ATS screening.</p>
         </div>
         <div class="tip-card">
           <div class="tip-icon">⏰</div>
-          <h3>Be Flexible</h3>
-          <p>Employers love students who can work various shifts. Show them you're adaptable and reliable.</p>
+          <h3>Apply Early</h3>
+          <p>Many companies recruit 6-12 months in advance. Start applying for summer internships in August-October of the previous year.</p>
         </div>
         <div class="tip-card">
-          <div class="tip-icon">💪</div>
-          <h3>Highlight Soft Skills</h3>
-          <p>Communication, teamwork, and problem-solving are valuable skills that don't require work experience.</p>
+          <div class="tip-icon">🚀</div>
+          <h3>Learn In-Demand Skills</h3>
+          <p>Focus on popular technologies: Python, JavaScript, React, SQL, Git. Take online courses and build projects with these tools.</p>
         </div>
       </div>
     </div>
@@ -191,31 +198,31 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-section">
-        <h4>JobFinder</h4>
+        <h4>CS Internship Finder</h4>
         <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.6;">
-          Helping students find their first jobs and build valuable work experience.
+          Helping CS students in Sydney/NSW find internships and launch their tech careers.
         </p>
       </div>
       <div class="footer-section">
-        <h4>Job Types</h4>
+        <h4>By Student Level</h4>
         <ul>
-          <li><a href="#">Part-time Jobs</a></li>
-          <li><a href="#">Casual Jobs</a></li>
-          <li><a href="#">Weekend Jobs</a></li>
-          <li><a href="#">Remote Jobs</a></li>
+          <li><a href="?student_level=first_year">First Year Internships</a></li>
+          <li><a href="?student_level=penultimate">Penultimate Year</a></li>
+          <li><a href="?student_level=final_year">Final Year & Graduates</a></li>
+          <li><a href="?remote_option=true">Remote Internships</a></li>
         </ul>
       </div>
       <div class="footer-section">
         <h4>Resources</h4>
         <ul>
-          <li><a href="#">Resume Tips</a></li>
-          <li><a href="#">Interview Guide</a></li>
-          <li><a href="#">Career Advice</a></li>
-          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Technical Interview Prep</a></li>
+          <li><a href="#">Portfolio Building</a></li>
+          <li><a href="#">Resume Templates</a></li>
+          <li><a href="#">Career Guide</a></li>
         </ul>
       </div>
       <div class="footer-section">
-        <h4>Contact</h4>
+        <h4>About</h4>
         <ul>
           <li><a href="#">About Us</a></li>
           <li><a href="#">Contact</a></li>
@@ -225,7 +232,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2024 JobFinder. All rights reserved. Made with ❤️ for students.</p>
+      <p>&copy; 2024 CS Internship Finder. All rights reserved. Made for aspiring tech professionals in Sydney/NSW.</p>
     </div>
   </footer>
 
